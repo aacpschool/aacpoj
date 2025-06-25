@@ -173,6 +173,18 @@
 </head>
 
 <body>
+
+    {% set NAV_I18N = {
+    'Home': {'en': 'Home', 'zh-hant': '首頁'},
+    'Problems': {'en': 'Problems', 'zh-hant': '題目'},
+    'Submissions': {'en': 'Submissions', 'zh-hant': '提交紀錄'},
+    'Users': {'en': 'Users', 'zh-hant': '使用者'},
+    'Contests': {'en': 'Contests', 'zh-hant': '比賽'},
+    'Status': {'en': 'Status', 'zh-hant': '解題狀態'},
+    'Resource': {'en': 'Resource', 'zh-hant': '資源'},
+    'About': {'en': 'About', 'zh-hant': '關於'}
+    } %}
+
     <svg width="0" height="0" style="display: block">
         <defs>
             <clipPath id="rating-clip">
@@ -191,7 +203,7 @@
                 {% for node in mptt_tree(nav_bar) recursive %}
                 <li>
                     <a href="{{ node.path }}" class="nav-{{ node.key }}{% if node.key in nav_tab %} active{% endif %}">
-                        {{ user_trans(node.label) }}
+                        {{ NAV_I18N.get(node.label, {}).get(LANGUAGE_CODE, node.label) }}
                         {% if not node.is_leaf_node %}
                         <div href="javascript:void(0)" class="nav-expand">></div>
                         {% endif %}
@@ -316,6 +328,19 @@
             </span>
         </footer>
     </div>
+    <script>
+        /* Auto‑open external links in new tab */
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('a[href]').forEach(function (a) {
+                const href = a.getAttribute('href');
+                if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+                if (a.hostname && a.hostname !== location.hostname) {
+                    a.setAttribute('target', '_blank');
+                    a.setAttribute('rel', 'noopener noreferrer');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

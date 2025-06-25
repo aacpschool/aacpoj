@@ -506,9 +506,6 @@ class ContestCalendar(TitleMixin, ContestListMixin, TemplateView):
             max_month = max((dates['max'].year, dates['max'].month), (self.today.year, self.today.month))
 
         month = (self.year, self.month)
-        if month < min_month or month > max_month:
-            # 404 is valid because it merely declares the lack of existence, without any reason
-            raise Http404()
 
         context['now'] = timezone.now()
         context['calendar'] = self.get_table()
