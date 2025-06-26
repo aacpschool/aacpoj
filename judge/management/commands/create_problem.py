@@ -1,7 +1,9 @@
 from django.core.management.base import BaseCommand
 from judge.models import Problem, ProblemGroup, ProblemType, Language, ProblemTranslation
+from django.contrib.auth.models import User
 import os
 import yaml
+import datetime
 
 class Command(BaseCommand):
     help = 'create an empty problem'
@@ -33,6 +35,17 @@ class Command(BaseCommand):
             with open(init_path, 'r') as f:
                 cfg = yaml.safe_load(f) or {}
 
+        # --- optional publish datetime ---
+        publish_dt = None
+        if 'publish' in cfg:
+            # single string e.g. "2025-06-25 21:12:52"
+            publish_dt = datetime.datetime.fromisoformat(str(cfg['publish']).strip())
+        elif 'publish_date' in cfg or 'publish_time' in cfg:
+            date_part = cfg.get('publish_date', '')
+            time_part = cfg.get('publish_time', '00:00:00')
+            if date_part:
+                publish_dt = datetime.datetime.fromisoformat(f"{date_part.strip()} {time_part.strip()}")
+
         # Create or update the Problem record
         try:
             problem = Problem.objects.get(code=opt['code'])
@@ -47,10 +60,12 @@ class Command(BaseCommand):
             problem.memory_limit = opt['memory']
             problem.points = opt['points']
             problem.group = pg
+            if publish_dt is not None:
+                problem.date = publish_dt
             problem.save()
             created = False
         except Problem.DoesNotExist:
-            problem = Problem(
+            problem_kwargs = dict(
                 code=opt['code'],
                 name=opt['name'],
                 description=open(opt['body_path']).read(),
@@ -59,6 +74,9 @@ class Command(BaseCommand):
                 points=opt['points'],
                 group=pg,
             )
+            if publish_dt is not None:
+                problem_kwargs['date'] = publish_dt
+            problem = Problem(**problem_kwargs)
             problem.save()
             created = True
         problem.types.set([ptype])   # 正確設定 Many-to-Many
@@ -97,3 +115,15 @@ class Command(BaseCommand):
                     setattr(translation, field, tr_body)
                     translation.save(update_fields=[field])
                     break
+
+        # --- authors from init.yml ---
+        if cfg.get('authors'):
+            user_objs = []
+            for username in cfg['authors']:
+                try:
+                    user_objs.append(User.objects.get(username=username))
+                except User.DoesNotExist:
+                    self.stderr.write(
+                        self.style.WARNING(f"User '{username}' 不存在，略過作者設定"))
+            if user_objs:
+                problem.authors.set([u.pk for u in user_objs])
