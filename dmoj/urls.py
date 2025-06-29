@@ -10,12 +10,14 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import RedirectView
 from martor.views import markdown_search_user
 
+
 from judge.feed import AtomBlogFeed, AtomCommentFeed, AtomProblemFeed, BlogFeed, CommentFeed, ProblemFeed
 from judge.sitemap import BlogPostSitemap, ContestSitemap, HomePageSitemap, OrganizationSitemap, ProblemSitemap, \
     SolutionSitemap, UrlSitemap, UserSitemap
 from judge.views import TitledTemplateView, api, blog, comment, contests, language, license, mailgun, organization, \
     preview, problem, problem_manage, ranked_submission, register, stats, status, submission, tasks, ticket, \
     two_factor, user, widgets
+from judge.views.editor_redirect import editor_redirect 
 from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
     problem_data_file, problem_init_view
 from judge.views.register import ActivationView, RegistrationView
@@ -73,6 +75,7 @@ register_patterns = [
 
     path('api/token/generate/', user.generate_api_token, name='generate_api_token'),
     path('api/token/remove/', user.remove_api_token, name='remove_api_token'),
+    path('go/editor/', editor_redirect, name='editor_redirect'),
 ]
 
 
@@ -411,3 +414,6 @@ if 'newsletter' in settings.INSTALLED_APPS:
     urlpatterns.append(path('newsletter/', include('newsletter.urls')))
 if 'impersonate' in settings.INSTALLED_APPS:
     urlpatterns.append(path('impersonate/', include('impersonate.urls')))
+urlpatterns += [
+    path('go/editor/', editor_redirect, name='editor_redirect'),
+]
