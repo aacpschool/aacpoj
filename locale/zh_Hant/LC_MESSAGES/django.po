@@ -6054,4 +6054,3 @@ msgstr "管理資料"
 #: templates/widgets/select_all.html:8
 msgid "Check all"
 msgstr "全選"
-
